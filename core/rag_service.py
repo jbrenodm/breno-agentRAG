@@ -63,16 +63,27 @@ def load_components() -> Tuple[Chroma, Ollama]:
     
     return db, ollama
 
-def query_rag(query_text: str) -> RAGResponse | ErrorResponse:
-    """Versão simplificada e robusta com trechos de contexto"""
+def query_rag(query_input: str | dict) -> RAGResponse | ErrorResponse:
+    """Versão que considera contexto hierárquico"""
     start_time = time.time()
     settings = Settings()
     
     try:
+        # Determina se a entrada é um dicionário com contexto ou apenas texto
+        if isinstance(query_input, dict):
+            query_text = query_input['text']
+            context = query_input.get('context', None)
+        else:
+            query_text = query_input
+            context = None
+        
         db, model = load_components()
         
-        # Busca semântica
-        results = db.similarity_search_with_score(query_text, k=settings.top_k)
+        # Se houver contexto, usa ambos para a busca
+        search_query = f"{context}\n{query_text}" if context else query_text
+        
+        # Busca semântica (agora usando search_query que pode incluir contexto)
+        results = db.similarity_search_with_score(search_query, k=settings.top_k)
         if not results:
             raise ValueError("Nenhum documento encontrado")
         
@@ -82,7 +93,7 @@ def query_rag(query_text: str) -> RAGResponse | ErrorResponse:
         # Extrai metadados e trechos
         sources = set()
         pages = set()
-        trechos = []  # Lista para armazenar os trechos completos
+        trechos = []
         
         for doc in docs:
             # Fontes
@@ -95,23 +106,33 @@ def query_rag(query_text: str) -> RAGResponse | ErrorResponse:
             if str(page).isdigit():
                 pages.add(f"p{page}")
             
-            # Trechos completos (limita a 1000 caracteres por trecho)
+            # Trechos completos
             trechos.append(doc.page_content[:1000] + ("..." if len(doc.page_content) > 1000 else ""))
         
-        # Prepara contexto para o prompt (usando os trechos completos)
-        context = "\n\n".join([f"Trecho {i+1}:\n{trecho}" for i, trecho in enumerate(trechos)])
+        # Prepara contexto para o prompt
+        retrieved_context = "\n\n".join([f"Trecho {i+1}:\n{trecho}" for i, trecho in enumerate(trechos)])
         
-        # Geração da resposta
-        prompt = (
-            "Você é especialista na solução Cortex XSIAM da Palo Alto Networks. "
-            "Analise a sentença a seguir de forma crítica e responda com clareza e objetividade, "
-            "usando o contexto fornecido quando relevante:\n\n"
-            f"Contexto:\n{context}\n\n"
-            f"(Pergunta/Afirmação): {query_text}\n"
+        # Geração da resposta - agora incluindo o contexto hierárquico se existir
+        prompt_parts = [
+            "Você é especialista na solução Cortex XSIAM da Palo Alto Networks.",
+            "Analise o requisito a seguir de forma crítica e responda com clareza e objetividade.",
+            "Responda de forma concisa, técnica e curta.",
+            ""
+        ]
+        
+        if context:
+            prompt_parts.append(f"Contexto Hierárquico:\n{context}")
+        
+        prompt_parts.extend([
+            f"Contexto Recuperado:\n{retrieved_context}",
+            "",
+            f"Requisito específico: {query_text}",
             "Resposta:"
-        )
+        ])
         
-        response = model.generate([prompt])
+        full_prompt = "\n".join(prompt_parts)
+        
+        response = model.generate([full_prompt])
         raw_response = response.generations[0][0].text.strip()
         cleaned_response = clean_ai_response(raw_response)
         
@@ -120,23 +141,25 @@ def query_rag(query_text: str) -> RAGResponse | ErrorResponse:
             'resposta': cleaned_response,
             'fontes': "|".join(sorted(sources)),
             'paginas': "|".join(sorted(pages)),
-            'trechos': "|---|".join(trechos),  # Nova coluna com os trechos
+            'trechos': "|---|".join(trechos),
             'modelo': settings.model_name,
             'tempo_resposta': f"{time.time() - start_time:.2f}s",
             'timestamp': int(time.time()),
-            'versao': settings.app_version
+            'versao': settings.app_version,
+            'contexto_hierarquico': context if context else 'N/A'
         }
         
     except Exception as e:
         logger.error(f"Erro: {str(e)}")
         return {
-            'pergunta': query_text,
+            'pergunta': query_text if 'query_text' in locals() else str(query_input),
             'resposta': f"ERRO: {str(e)}",
             'fontes': 'N/A',
             'paginas': 'N/A',
-            'trechos': 'N/A',  # Incluído também no caso de erro
+            'trechos': 'N/A',
             'modelo': settings.model_name,
             'tempo_resposta': '0.00s',
             'timestamp': int(time.time()),
-            'versao': settings.app_version
+            'versao': settings.app_version,
+            'contexto_hierarquico': context if 'context' in locals() else 'N/A'
         }
