@@ -9,6 +9,8 @@ from core.models import RAGResponse, ErrorResponse
 from get_embedding_function import get_embedding_function
 from langchain.docstore.document import Document
 from core.utils import clean_ai_response 
+from core.response_analyzer import ResponseAnalyzer
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -116,7 +118,7 @@ def query_rag(query_input: str | dict) -> RAGResponse | ErrorResponse:
         prompt_parts = [
             "Você é especialista na solução Cortex XSIAM da Palo Alto Networks.",
             "Analise o requisito a seguir de forma crítica e responda com clareza e objetividade.",
-            "Responda de forma concisa, técnica e curta.",
+            "Inicie a resposta com 'SIM' ou 'NÃO', seguido de uma justificativa Concisa, técnica e curta.",
             ""
         ]
         
@@ -135,6 +137,9 @@ def query_rag(query_input: str | dict) -> RAGResponse | ErrorResponse:
         response = model.generate([full_prompt])
         raw_response = response.generations[0][0].text.strip()
         cleaned_response = clean_ai_response(raw_response)
+       # Análise da resposta - versão simplificada e funcional
+        analysis_result = ResponseAnalyzer.evaluate_response(query_text, cleaned_response)
+        atende = analysis_result["atende"]
         
         return {
             'pergunta': query_text,
@@ -146,7 +151,8 @@ def query_rag(query_input: str | dict) -> RAGResponse | ErrorResponse:
             'tempo_resposta': f"{time.time() - start_time:.2f}s",
             'timestamp': int(time.time()),
             'versao': settings.app_version,
-            'contexto_hierarquico': context if context else 'N/A'
+            'contexto_hierarquico': context if context else 'N/A',
+            'atende': analysis_result['atende']  # Usando o resultado direto da análise
         }
         
     except Exception as e:
@@ -161,5 +167,6 @@ def query_rag(query_input: str | dict) -> RAGResponse | ErrorResponse:
             'tempo_resposta': '0.00s',
             'timestamp': int(time.time()),
             'versao': settings.app_version,
-            'contexto_hierarquico': context if 'context' in locals() else 'N/A'
+            'contexto_hierarquico': context if 'context' in locals() else 'N/A',
+            'atende': 'NÃO'  # Em caso de erro, considera como não atendido
         }

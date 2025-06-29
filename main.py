@@ -30,6 +30,7 @@ def format_output(results, questions):
             'Pergunta': display_text,
             'Contexto': question.get('context', ''),
             'Resposta': result.get('resposta', 'N/A'),
+            'Atende': result.get('atende', 'NÃO'),  # Nova coluna
             'Fonte': result.get('fontes', 'N/A'),
             'Trecho': result.get('trechos', 'N/A'),
             'Página': result.get('paginas', 'N/A')

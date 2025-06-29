@@ -10,7 +10,11 @@ class RAGResponse(TypedDict):
     tempo_resposta: str
     timestamp: int
     versao: str
-    contexto_hierarquico: str  # Novo campo
+    contexto_hierarquico: str
+    atende: str
+    correspondencia: str  # Novo campo
+    positive_indicators: int  # Novo campo
+    negative_indicators: int  # Novo campo
 
 class ErrorResponse(TypedDict):
     pergunta: str
@@ -22,7 +26,10 @@ class ErrorResponse(TypedDict):
     tempo_resposta: str
     timestamp: int
     versao: str
-    contexto_hierarquico: str  # Novo campo
+    contexto_hierarquico: str
+    atende: str
+    correspondencia: str  # Novo campo
+    positive_indicators: int  # Novo campo
+    negative_indicators: int  # Novo campo
 
-# Tipo unificado para retorno
 RAGResult = Union[RAGResponse, ErrorResponse]
