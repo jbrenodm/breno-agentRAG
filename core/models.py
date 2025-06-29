@@ -1,4 +1,4 @@
-from typing import Dict, List, TypedDict, Union
+from typing import Dict, List, TypedDict
 
 class RAGResponse(TypedDict):
     pergunta: str
@@ -10,7 +10,6 @@ class RAGResponse(TypedDict):
     tempo_resposta: str
     timestamp: int
     versao: str
-    contexto_hierarquico: str  # Novo campo
 
 class ErrorResponse(TypedDict):
     pergunta: str
@@ -22,7 +21,3 @@ class ErrorResponse(TypedDict):
     tempo_resposta: str
     timestamp: int
     versao: str
-    contexto_hierarquico: str  # Novo campo
-
-# Tipo unificado para retorno
-RAGResult = Union[RAGResponse, ErrorResponse]
