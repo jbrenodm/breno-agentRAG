@@ -14,28 +14,24 @@ logger = logging.getLogger(__name__)
 
 def format_output(results, questions):
     output_data = []
-    
     for question, result in zip(questions, results):
-        # Determina indentação baseada no tipo
-        if question['type'] == 'subitem':
-            indent = "    "
-            display_text = f"{indent}{question['text']}"
+        # Formata número + texto
+        if question['type'] == 'main':
+            display_text = f"{question['numero']}: {question['text']}"
         else:
-            indent = ""
-            display_text = question['text']
-        
+            display_text = f"    {question['numero']}: {question['text']}"  # Subitem indentado
+
         output_data.append({
             'Ordem': question['original_order'] + 1,
-            'Tipo': question['type'],
+            'Número': question['numero'],  # Novo campo
             'Pergunta': display_text,
-            'Contexto': question.get('context', ''),
+            'Contexto': question.get('contexto', ''),
             'Resposta': result.get('resposta', 'N/A'),
-            'Atende': result.get('atende', 'NÃO'),  # Nova coluna
+            'Atende': result.get('atende', 'NÃO'),
             'Fonte': result.get('fontes', 'N/A'),
             'Trecho': result.get('trechos', 'N/A'),
             'Página': result.get('paginas', 'N/A')
         })
-    
     return pd.DataFrame(output_data)
 
 
