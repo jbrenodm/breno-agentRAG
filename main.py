@@ -15,15 +15,18 @@ logger = logging.getLogger(__name__)
 def format_output(results, questions):
     output_data = []
     for question, result in zip(questions, results):
-        # Formata número + texto
-        if question['type'] == 'main':
-            display_text = f"{question['numero']}: {question['text']}"
+        # Garante que 'numero' exista
+        numero = question.get('numero', f"Unnumbered.{question['original_order']+1}")
+        
+        # Determina indentação baseada no tipo
+        if question['type'] == 'subitem':
+            display_text = f"    {numero}: {question['text']}"
         else:
-            display_text = f"    {question['numero']}: {question['text']}"  # Subitem indentado
-
+            display_text = f"{numero}: {question['text']}"
+        
         output_data.append({
             'Ordem': question['original_order'] + 1,
-            'Número': question['numero'],  # Novo campo
+            'Número': numero,
             'Pergunta': display_text,
             'Contexto': question.get('contexto', ''),
             'Resposta': result.get('resposta', 'N/A'),
