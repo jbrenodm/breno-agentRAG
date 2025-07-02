@@ -49,7 +49,16 @@ Sistema automatizado que processe arquivos (.xls, .csv ou .txt) contendo requisi
 
 Proximo passo:
 [PRONTO] Criar um arquivo onde vai pegar os requisitos de uma planilha .xls ou .csv ou .txt
-[PRONTO] Estes requisitos deste documento serão passados linha por linha (via loop) para o arquivo "query_data.py" onde cada resposta recebida de cada linha, sera salva em [PRONTO]um arquivo ao lado de sua pergunta, tambem com sua fonte e pagina. A estrutura do arquivo deve ser: Pergunta; Resposta; Fonte; Página.
+[PRONTO] Estes requisitos deste documento serão passados linha por linha (via loop) para o arquivo "query_data.py" onde cada resposta recebida de cada linha, sera salva em 
+[PRONTO]um arquivo ao lado de sua pergunta, tambem com sua fonte e pagina. A estrutura do arquivo deve ser: Pergunta; Resposta; Fonte; Página.
 [PRONTO]O arquivo deverá ser salvo no formato em .csv ou .xls
-[] No momento o arquivo gerado está vindo com as linhas fora de ordem. Preciso ordenar conforme a ordem do arquivo de entrada.
-[] Fazer o tratamento de lista com sublista 
+[PRONTO] No momento o arquivo gerado está vindo com as linhas fora de ordem. Preciso ordenar conforme a ordem do arquivo de entrada.
+[EM ANDAMENTO] Fazer o tratamento de lista com sublista 
+
+
+- A VELOCIDADE DEPENDE DE QUANTOS THREADS (PARAMETRO WORKERS OU MAX_WORKERS") É LIBERADO PARA EXECUÇÃO
+- A VELOCIDADE TAMBEM DEPENDE DE QUANTAS FONTES DE RETORNO ("PARAMETRO K ou TOP_K") SÃO PEDIDOS PARA A BUSCA
+- O TEMPO MÉDIO DE PARA 5 WORKERS COM 2 FONTES (K=2) -E DE APROXIMADAMENTE 1 MINUTO PARA CADA LINHA DE ENTRADA. OU SEJA, 1 MINUTO PARA A IA RESPONDER CADA REQUITO.
+- NO MOMENTO AINDA SÓ ESTÁ FUNCIONANDO 1 FONTE DE DADOS POR PROJETO. (ARQUIVO NA PASTA "/DATA")
+- FALTA DESENVOLVER O FRONTEND PARA O USUÁRIO INSERIR OS REQUISITOS E RECEBER O ARQUIVO DE SAIDA
+
